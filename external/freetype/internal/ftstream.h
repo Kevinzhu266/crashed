@@ -20,7 +20,7 @@
 #define FTSTREAM_H_
 
 
-#include <ft2build.h>
+#include <freetype/ft2build.h>
 #include <freetype/ftsystem.h>
 #include <freetype/internal/ftobjs.h>
 

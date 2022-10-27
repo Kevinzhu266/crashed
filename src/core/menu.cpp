@@ -3,88 +3,36 @@
 #include <stdexcept>
 #include <fstream>
 
+#include "../sdk/players.h"
+
 LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
 
-#include "../external/squirrel/squirrel.h"
-#include "../external/squirrel/sqstdio.h"
-#include "../external/squirrel/sqstdaux.h"
+void menu::render() noexcept {
+	if (ImGui::Begin("crashed", &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse)) {
+		if (context::game_info) {
+			ImGui::Text("Map \"%s\"", context::game_info->map());
+			ImGui::Text("Time \"%s\"", context::game_info->time());
+			ImGui::Text("Mission \"%s\"", context::game_info->mission());
+			ImGui::Text("Weather \"%s\"", context::game_info->weather());
 
-void menu::Render() noexcept
-{
-	ImGui::SetNextWindowSize({ 500, 400 });
-	if (ImGui::Begin("script executor", &open,
-		ImGuiWindowFlags_NoSavedSettings
-		| ImGuiWindowFlags_NoResize
-		| ImGuiWindowFlags_NoCollapse))
-	{
-		static char script_buffer[500];
-
-		ImGui::InputTextMultiline("##script",
-			script_buffer,
-			IM_ARRAYSIZE(script_buffer),
-			{ ImGui::GetContentRegionAvail().x, ImGui::GetContentRegionAvail().y - 50 });
-
-		//if (ImGui::Button("instant leave"))
-		//{
-		//	static const auto vm = *reinterpret_cast<HSQUIRRELVM*>(
-		//		memory::GetOffset<std::uintptr_t>(reinterpret_cast<std::uintptr_t>(
-		//			memory::Scan("48 8B 35 ? ? ? ? 48 8B 7E 30 48 8B 46 50 48 8D 48 01 48 89 4E 50 48 C1 E0 04")), 0x3));
-
-		//	using CallFn = SQRESULT(__fastcall*)(HSQUIRRELVM, SQInteger, SQBool, SQBool);
-		//	using PushStringFn = void(__fastcall*)(HSQUIRRELVM, const SQChar*, SQInteger);
-
-		//	static const auto game_sq_call = reinterpret_cast<CallFn>(
-		//		memory::Scan("56 57 53 48 83 EC 40 4C 89 C3 48 89 D7 48 89 CE C7 44 24 ? ? ? ? ?")
-		//		);
-
-		//	static const auto game_sq_pushstring = reinterpret_cast<PushStringFn>(
-		//		memory::Scan("56 57 48 83 EC 28 48 89 CF 48 85 D2 75 48 4D 85 C0 74 43 48 8B 47 30")
-		//		);
-
-		//	if (vm)
-		//	{
-		//		sq_pushroottable(vm);
-		//		game_sq_pushstring(vm, "show_not_available_msg_box", -1);
-
-		//		if (SQ_SUCCEEDED(sq_get(vm, -2)))
-		//		{
-		//			sq_pushroottable(vm);
-
-		//			if (SQ_SUCCEEDED(game_sq_call(vm, 1, SQFalse, SQFalse)))
-		//			{
-
-		//			}
-
-		//			sq_pop(vm, 2);
-		//		}
-		//	}
-		//}
-
-		if (ImGui::Button("execute"))
-		{
-			using RunScriptFn = std::int64_t(__fastcall*)(const char* script, std::int64_t a2, std::int64_t a3);
-			static const auto run_script = reinterpret_cast<RunScriptFn>(
-				memory::Scan("56 57 53 48 81 EC ? ? ? ? 4C 89 C7 48 89 D6 48 8D 1D ? ? ? ? 48 89 5C 24 ? 48 C7 44 24 ? ? ? ? ?")
-				);
-
-			//run_script("foreach(unit in ::all_units) {\r\nunit.costGold = 1\r\n}", 0, 0);
-			//run_script("::showInfoMsgBox(::format(\"Welcome to Crashed!\"));", 0, 0);
-			//run_script("foreach(unit in ::all_units) {\r\nunit.costGold = 1\r\n}", 0, 0);
-			run_script(script_buffer, 0, 0);
+			if (context::player_list) {
+				ImGui::Text("Players  \"%i\"", context::player_list->m_count);
+				if (const Player* local = context::player_list->local_player(); local) {
+					ImGui::Text("Clantag  \"%s\"", local->clan_tag());
+				}
+			}
 		}
 
 		ImGui::End();
 	}
 }
 
-void menu::SetupMenu(IDXGISwapChain* swap_chain) noexcept
-{
+void menu::create_menu(IDXGISwapChain* swap_chain) noexcept {
 	ID3D11Device* device;
 	ID3D11DeviceContext* context;
 	ID3D11RenderTargetView* mainRenderTargetView;
 
-	if (SUCCEEDED(swap_chain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void**>(&device))))
-	{
+	if (SUCCEEDED(swap_chain->GetDevice(__uuidof(ID3D11Device), reinterpret_cast<void**>(&device)))) {
 		device->GetImmediateContext(&context);
 
 		DXGI_SWAP_CHAIN_DESC swapChainDesc;
@@ -96,7 +44,7 @@ void menu::SetupMenu(IDXGISwapChain* swap_chain) noexcept
 		device->CreateRenderTargetView(backBuffer, NULL, &mainRenderTargetView);
 		backBuffer->Release();
 
-		windowProcessOriginal = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window,
+		original_window_process = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window,
 			GWLP_WNDPROC,
 			reinterpret_cast<LONG_PTR>(WindowProcess)));
 
@@ -116,23 +64,24 @@ void menu::SetupMenu(IDXGISwapChain* swap_chain) noexcept
 		style->FramePadding = { 20, 7 };
 		style->FrameBorderSize = 1;
 
+		assert(device);
+		assert(window);
+
 		ImGui_ImplWin32_Init(window);
 		ImGui_ImplDX11_Init(device, context);
 	}
 }
 
-void menu::Shutdown() noexcept
-{
-	free(methodsTable);
+void menu::destroy_menu() noexcept {
+	free(method_table);
 
 	ImGui_ImplDX11_Shutdown();
 	ImGui_ImplWin32_Shutdown();
 	ImGui::DestroyContext();
-	SetWindowLongPtrW(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(windowProcessOriginal));
+	SetWindowLongPtrW(window, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(original_window_process));
 }
 
-void menu::Setup()
-{
+void menu::create() {
 	WNDCLASSEX windowClass;
 	windowClass.cbSize = sizeof(WNDCLASSEX);
 	windowClass.style = CS_HREDRAW | CS_VREDRAW;
@@ -147,7 +96,9 @@ void menu::Setup()
 	windowClass.lpszClassName = "Crashed";
 	windowClass.hIconSm = NULL;
 
-	RegisterClassEx(&windowClass);
+	if (!RegisterClassEx(&windowClass)) {
+		throw std::runtime_error("Failed to register window class.");
+	}
 
 	const auto tempWindow = CreateWindow(windowClass.lpszClassName,
 		"Crashed DirectX Window",
@@ -159,10 +110,14 @@ void menu::Setup()
 		windowClass.hInstance,
 		NULL);
 
+	if (!tempWindow) {
+		UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+		throw std::runtime_error("Failed to create temp window.");
+	}
+
 	const auto d3dlib = GetModuleHandleA("d3d11.dll");
 
-	if (!d3dlib)
-	{
+	if (!d3dlib) {
 		DestroyWindow(tempWindow);
 		UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 		throw std::runtime_error("Unable to get d3d11.dll handle");
@@ -184,8 +139,7 @@ void menu::Setup()
 
 	const auto function = reinterpret_cast<Fn>(GetProcAddress(d3dlib, "D3D11CreateDeviceAndSwapChain"));
 
-	if (!function)
-	{
+	if (!function) {
 		DestroyWindow(tempWindow);
 		UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
 		throw std::runtime_error("Unable to get D3D11CreateDeviceAndSwapChain");
@@ -241,10 +195,10 @@ void menu::Setup()
 		throw std::runtime_error("Fuck knows what this problem is");
 	}
 
-	methodsTable = reinterpret_cast<uint64_t*>(calloc(205, sizeof(uint64_t)));
-	memcpy(methodsTable, *reinterpret_cast<uint64_t**>(swapChain), 18 * sizeof(uint64_t));
-	memcpy(methodsTable + 18, *reinterpret_cast<uint64_t**>(device), 43 * sizeof(uint64_t));
-	memcpy(methodsTable + 18 + 43, *reinterpret_cast<uint64_t**>(context), 144 * sizeof(uint64_t));
+	method_table = reinterpret_cast<uint64_t*>(calloc(205, sizeof(uint64_t)));
+	memcpy(method_table, *reinterpret_cast<uint64_t**>(swapChain), 18 * sizeof(uint64_t));
+	memcpy(method_table + 18, *reinterpret_cast<uint64_t**>(device), 43 * sizeof(uint64_t));
+	memcpy(method_table + 18 + 43, *reinterpret_cast<uint64_t**>(context), 144 * sizeof(uint64_t));
 
 	swapChain->Release();
 	swapChain = NULL;
@@ -260,13 +214,12 @@ void menu::Setup()
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
-LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam)
-{
+LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam) {
 	if (GetAsyncKeyState(VK_INSERT) & 1)
 		menu::open = !menu::open;
 
 	if (menu::open && ImGui_ImplWin32_WndProcHandler(window, message, wideParam, longParam))
 		return 1L;
 
-	return CallWindowProcW(menu::windowProcessOriginal, window, message, wideParam, longParam);
+	return CallWindowProcW(menu::original_window_process, window, message, wideParam, longParam);
 }

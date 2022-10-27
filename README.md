@@ -6,8 +6,7 @@ An internal War Thunder modification. Please note: No EAC bypass is provided, us
 - ImGui Menu with FreeType font rendering
 - Color-based 3D ESP based on aircraft type
 - Ability to hook game functions with MinHook modification
-- Sigs for up-to-date offsets
-- Optional ability to dump War Thunder's Squirrel scripts
+- Sigs for up-to-date offset
 
 ## 📸 Example
 ![ss](https://i.imgur.com/emRL8dQ.png)

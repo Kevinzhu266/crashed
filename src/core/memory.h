@@ -1,13 +1,11 @@
 #pragma once
 #include "syscall.h"
 
-namespace memory
-{
-	std::uint8_t* Scan(const char* signature) noexcept;
+namespace memory {
+	std::uintptr_t scan(const char* signature) noexcept;
 
 	template<typename T = std::uintptr_t>
-	constexpr T GetOffset(std::uintptr_t address, int offset)
-	{
-		return (T)(address + (int)((*(int*)(address + offset) + offset) + sizeof(int)));
+	T get_offset(std::uintptr_t addr, int offset) noexcept {
+		return reinterpret_cast<T>(addr + static_cast<int>((*reinterpret_cast<int*>(addr + offset) + offset) + sizeof(int)));
 	}
 }

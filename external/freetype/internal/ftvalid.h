@@ -19,7 +19,7 @@
 #ifndef FTVALID_H_
 #define FTVALID_H_
 
-#include <ft2build.h>
+#include <freetype/ft2build.h>
 #include FT_CONFIG_STANDARD_LIBRARY_H   /* for ft_jmpbuf */
 
 #include "compiler-macros.h"

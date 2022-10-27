@@ -1,10 +1,8 @@
 #pragma once
-#include "../globals.h"
+#include "../context.h"
 #include "../memory.h"
-
 #include "../../sdk/game.h"
 
-namespace hacks
-{
-	void Visuals() noexcept;
+namespace hacks {
+	void visuals() noexcept;
 }

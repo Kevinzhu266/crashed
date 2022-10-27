@@ -1,111 +1,79 @@
-#include <Windows.h>
 #include <thread>
 #include <iostream>
 #include <format>
+#include <chrono>
 
+#include <Windows.h>
 #include "hooks/hooks.h"
 
-unsigned long __stdcall setup(void* instance)
-{
+DWORD WINAPI run_crashed(LPVOID instance) {
+	const auto injection_time = std::chrono::high_resolution_clock::now();
+
 	AllocConsole();
-	FILE* fDummy;
-	freopen_s(&fDummy, "CONOUT$", "w", stdout);
 
-	const auto get = [](const char* signature) noexcept -> std::uintptr_t
-	{
-		return reinterpret_cast<std::uintptr_t>(memory::Scan(signature));
-	};
+	FILE* fp;
+	freopen_s(&fp, "CONIN$", "r", stdin);
+	freopen_s(&fp, "CONOUT$", "w", stdout);
+	freopen_s(&fp, "CONOUT$", "w", stderr);
 
-	const auto local = get("48 8B 05 ? ? ? ? B1 FF 48 85 C0 74 03 8A 48 08");
-	g::local = reinterpret_cast<LocalPlayer*>(memory::GetOffset<std::uintptr_t*>(local, 0x3));
+	constexpr auto game_info_sig = "48 8B 0D ? ? ? ? 48 85 C9 0F 84 ? ? ? ? C6 05 ? ? ? ? ?";
+	constexpr auto player_list_sig = "48 8B 35 ? ? ? ? 4C 8D 3C C6";
 
-	//const auto unit = get("48 8B 0D ? ? ? ? 48 85 C9 74 4D 4C 8B 81 ? ? ? ? 4D 85 C0 74 53");
-	//g::unit = reinterpret_cast<Unit*>(*memory::GetOffset<std::uintptr_t*>(unit, 0x3));
+	context::game_info = *memory::get_offset<GameInfo**>(memory::scan(game_info_sig), 0x3);
+	context::player_list = memory::get_offset<PlayerList*>(memory::scan(player_list_sig), 0x3);
 
-	const auto list = get("48 8B 1D ? ? ? ? 48 85 DB 0F 84 ? ? ? ? 4C 8B 0D ? ? ? ? 49 83 F9 04");
-	g::list = reinterpret_cast<PlayerList*>(memory::GetOffset<std::uintptr_t*>(list, 0x3));
+	std::cout << "[addresses]:\n";
+	std::cout << std::format("- context::game_info {:#x}\n", std::uintptr_t(context::game_info));
+	std::cout << std::format("- context::player_list {:#x}\n\n", std::uintptr_t(context::player_list));
 
-	const auto game = get("48 8B 05 ? ? ? ? F2 0F 10 4F ? F2 0F 5A C9 F2 0F 10 17 F2 0F 5A D2 F3 0F 11 54 24 ?");
-	g::game = reinterpret_cast<Game*>(*memory::GetOffset<std::uintptr_t*>(game, 0x3));
+	const auto base = std::uintptr_t(GetModuleHandle(NULL));
 
-	try
-	{
-		menu::Setup();
-		hooks::Setup();
+	std::cout << "[offsets]:\n";
+	std::cout << std::format("- context::game_info {:#x}\n", std::uintptr_t(memory::get_offset<GameInfo*>(memory::scan(game_info_sig), 0x3)) - base);
+	std::cout << std::format("- context::player_list {:#x}\n\n", std::uintptr_t(memory::get_offset<PlayerList*>(memory::scan(player_list_sig), 0x3)) - base);
+
+	try {
+		menu::create();
+		hooks::create();
 	}
-	catch (const std::exception& error)
-	{
-		MessageBoxA(NULL, error.what(), "crashed error", MB_OK);
-		hooks::Shutdown();
-		menu::Shutdown();
-		::FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
+	catch (const std::exception& error) {
+		MessageBox(nullptr, error.what(), "crashed", MB_ICONERROR);
+		hooks::destroy();
+		menu::destroy_menu();
+		FreeConsole();
+		FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
+	}
+	catch (...) {
+		MessageBox(nullptr, "an unknown  exception occured", "crashed", MB_ICONERROR);
+		hooks::destroy();
+		menu::destroy_menu();
+		FreeConsole();
+		FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
 	}
 
-	std::cout << "Welcome to Crashed - Do not close this window!" << std::endl;
-	std::cout << std::endl;
+	// wait until the unload key is pressed
+	while (!GetAsyncKeyState(VK_END)) {
+		Sleep(200);
+	}
 
-	std::cout << "END to un-load the cheat..." << std::endl;
-	std::cout << std::endl;
+	hooks::destroy();
+	menu::destroy_menu();
 
-	std::cout << "[Initialization]:" << std::endl;
-	std::cout << std::hex
-		<< "- g::local -> 0x" << g::local << std::endl
-		//<< "- g::unit -> 0x" << g::unit << std::endl
-		<< "- g::list -> 0x" << g::list << std::endl
-		<< "- g::game -> 0x" << g::game
-		<< std::dec << std::endl;
-	std::cout << std::endl;
-
-	// Get base address to calculate offsets
-	const auto base = reinterpret_cast<std::uintptr_t>(GetModuleHandleA("aces.exe"));
-
-	std::cout << "[Base]:\n- \"aces.exe\" -> 0x" << std::hex << base << std::dec << std::endl;
-	std::cout << std::endl;
-
-	const auto offset = [base](std::uintptr_t address, int offset) noexcept -> std::uintptr_t
-	{
-		return reinterpret_cast<std::uintptr_t>(memory::GetOffset<std::uintptr_t*>(address, offset)) - base;
-	};
-
-	std::cout << "[Offsets]:" << std::endl;
-	std::cout << std::hex <<
-		"- local player -> 0x" << offset(local, 3) << std::endl <<
-		//"- local unit -> 0x" << offset(unit, 3) << std::endl <<
-		"- player list -> 0x" << offset(list, 3) << std::endl <<
-		"- game -> 0x" << offset(game, 3) << std::endl <<
-		std::dec << std::endl << std::endl;
-
-	while (!::GetAsyncKeyState(VK_END))
-		std::this_thread::sleep_for(std::chrono::milliseconds(200));
-
-	hooks::Shutdown();
-	menu::Shutdown();
-
-	std::cout << "[Shutdown] Cheat has been unloaded" << std::endl;
-
-	::FreeConsole();
-	::FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
-
-	return 0;
+	FreeConsole();
+	FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
 }
 
-int __stdcall DllMain(void* instance, unsigned long reason, void* previous)
-{
-	if (reason == 1)
-	{
-		::DisableThreadLibraryCalls(static_cast<HMODULE>(instance));
+BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
+	if (reason == DLL_PROCESS_ATTACH) {
+		DisableThreadLibraryCalls(instance);
 
-		const auto thread = ::CreateThread(NULL,
-			NULL,
-			setup,
-			instance,
-			NULL,
-			nullptr);
+		HANDLE thread = CreateThread(nullptr, 0, run_crashed, instance, 0, nullptr);
 
-		if (thread)
-			::CloseHandle(thread);
+		if (thread) {
+			CloseHandle(thread);
+		}
 	}
 
-	return 1;
+	return TRUE;
 }
 

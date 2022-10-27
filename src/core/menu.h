@@ -3,21 +3,21 @@
 
 #include "hacks/hacks.h"
 
-#include "../external/imgui/imgui.h"
-#include "../external/imgui/imgui_impl_dx11.h"
-#include "../external/imgui/imgui_impl_win32.h"
+#include <imgui/imgui.h>
+#include <imgui/imgui_impl_dx11.h>
+#include <imgui/imgui_impl_win32.h>
 
 namespace menu
 {
 	inline bool open = false;
-	void Render() noexcept;
+	void render() noexcept;
 
-	void SetupMenu(IDXGISwapChain* swap_chain) noexcept;
-	void Shutdown() noexcept;
+	void create_menu(IDXGISwapChain* swap_chain) noexcept;
+	void destroy_menu() noexcept;
 
 	inline HWND window = nullptr;
-	inline WNDPROC windowProcessOriginal = nullptr;
+	inline WNDPROC original_window_process = nullptr;
 
-	void Setup();
-	inline std::uint64_t* methodsTable = nullptr;
+	void create();
+	inline std::uint64_t* method_table = nullptr;
 }
