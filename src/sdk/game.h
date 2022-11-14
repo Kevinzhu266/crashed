@@ -2,6 +2,10 @@
 #include "units.h"
 
 struct GameInfo {
+	auto& in_hanger() const noexcept {
+		return*reinterpret_cast<bool*>(std::uintptr_t(this) + 0xD5);
+	}
+
 	auto map() const noexcept {
 		return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x1D0);
 	}
@@ -31,7 +35,6 @@ struct GameInfo {
 	}
 
 	auto& view_matrix() const noexcept {
-		auto location = *reinterpret_cast<const std::uintptr_t*>(std::uintptr_t(this) + 0x7b0);
-		return *reinterpret_cast<ViewMatrix*>(location + 0x268);
+		return *reinterpret_cast<ViewMatrix*>(*reinterpret_cast<std::uintptr_t*>(std::uintptr_t(this) + 0x7B0) + 0x268);
 	}
 };

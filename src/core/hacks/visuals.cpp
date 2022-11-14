@@ -4,6 +4,7 @@
 #include "../../sdk/math/view_matrix.h"
 #include "../../sdk/math/point.h"
 #include "../../sdk/players.h"
+#include "../../sdk/hud.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_dx11.h>
@@ -35,7 +36,7 @@ static bool world_to_screen(const Vector& world, Point& screen) noexcept {
 }
 
 void hacks::visuals() noexcept {
-    if (!context::game_info || !context::player_list) {
+    if (!context::player_list) {
         return;
     }
 
@@ -45,7 +46,7 @@ void hacks::visuals() noexcept {
         return;
     }
 
-    for (unsigned int i = 0u; i < context::player_list->m_count; ++i) {
+    for (int i = 0; i < context::player_list->m_count; ++i) {
         const Player* player = context::player_list->m_players[i];
 
         if (!player) {
@@ -56,9 +57,20 @@ void hacks::visuals() noexcept {
             continue;
         }
 
-        const Unit* unit = player->unit();
+        if (player->gui_state() != Player::GuiState::alive) {
+            continue;
+        }
+
+        const Unit* unit = player->owned_unit();
 
         if (!unit) {
+            continue;
+        }
+
+        const Vector& position = unit->position();
+
+        // this is a bit of a hack until i find dormancy
+        if (position.is_zero()) {
             continue;
         }
 

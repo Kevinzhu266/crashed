@@ -3,6 +3,10 @@
 #include "math/rotation_matrix.h"
 #include "math/view_matrix.h"
 
+struct UnitWeapons {
+
+};
+
 struct UnitInfo {
 	char* m_type_name;
 	char* m_model_path;
@@ -36,8 +40,27 @@ struct Unit {
 		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x9E0);
 	}
 
+	auto& invulnerable() const noexcept {
+		return *reinterpret_cast<bool*>(std::uintptr_t(this) + 0xFA0);
+	}
+
+	enum class State : std::uint32_t {
+		alive = 0,
+		dead = 2
+	};
+
 	auto& state() const noexcept {
-		return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x1080);
+		return *reinterpret_cast<State*>(std::uintptr_t(this) + 0x1080);
+	}
+
+	enum class Types {
+		aircraft = 0,
+		tank = 3,
+		boat = 5
+	};
+
+	auto& type() const noexcept {
+		return *reinterpret_cast<Types*>(std::uintptr_t(this) + 0x1088);
 	}
 
 	auto player() const noexcept {
@@ -48,12 +71,16 @@ struct Unit {
 		return *reinterpret_cast<int*>(std::uintptr_t(this) + 0x10D8);
 	}
 
-	auto unit_info() const noexcept {
+	auto info() const noexcept {
 		return *reinterpret_cast<UnitInfo**>(std::uintptr_t(this) + 0x10E8);
+	}
+
+	auto weapons() const noexcept {
+		return *reinterpret_cast<UnitWeapons**>(std::uintptr_t(this) + 0x1198);
 	}
 };
 
 struct UnitList {
 	Unit** m_units;
-	unsigned int m_count;
+	int m_count;
 };
