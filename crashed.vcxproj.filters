@@ -458,6 +458,9 @@
     <ClInclude Include="src\sdk\players.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\sdk\hud.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <MASM Include="src\core\syscall.asm">

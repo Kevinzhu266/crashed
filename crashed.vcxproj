@@ -304,6 +304,7 @@
     <ClInclude Include="external\minhook\minhook.h" />
     <ClInclude Include="external\minhook\trampoline.h" />
     <ClInclude Include="src\sdk\game.h" />
+    <ClInclude Include="src\sdk\hud.h" />
     <ClInclude Include="src\sdk\math\point.h" />
     <ClInclude Include="src\sdk\math\rotation_matrix.h" />
     <ClInclude Include="src\sdk\math\vector.h" />

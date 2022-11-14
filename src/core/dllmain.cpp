@@ -18,19 +18,24 @@ DWORD WINAPI run_crashed(LPVOID instance) {
 
 	constexpr auto game_info_sig = "48 8B 0D ? ? ? ? 48 85 C9 0F 84 ? ? ? ? C6 05 ? ? ? ? ?";
 	constexpr auto player_list_sig = "48 8B 35 ? ? ? ? 4C 8D 3C C6";
+	constexpr auto hud_info_sig = "48 8B 0D ? ? ? ? 83 B9 ? ? ? ? ? 7C 4E";
 
 	context::game_info = *memory::get_offset<GameInfo**>(memory::scan(game_info_sig), 0x3);
 	context::player_list = memory::get_offset<PlayerList*>(memory::scan(player_list_sig), 0x3);
+	context::hud_info = *memory::get_offset<HudInfo**>(memory::scan(hud_info_sig), 0x3);
 
 	std::cout << "[addresses]:\n";
 	std::cout << std::format("- context::game_info {:#x}\n", std::uintptr_t(context::game_info));
-	std::cout << std::format("- context::player_list {:#x}\n\n", std::uintptr_t(context::player_list));
+	std::cout << std::format("- context::player_list {:#x}\n", std::uintptr_t(context::player_list));
+	std::cout << std::format("- context::hud_info {:#x}\n\n", std::uintptr_t(context::hud_info));
 
+	// get the base address of aces.exe
 	const auto base = std::uintptr_t(GetModuleHandle(NULL));
 
 	std::cout << "[offsets]:\n";
 	std::cout << std::format("- context::game_info {:#x}\n", std::uintptr_t(memory::get_offset<GameInfo*>(memory::scan(game_info_sig), 0x3)) - base);
-	std::cout << std::format("- context::player_list {:#x}\n\n", std::uintptr_t(memory::get_offset<PlayerList*>(memory::scan(player_list_sig), 0x3)) - base);
+	std::cout << std::format("- context::player_list {:#x}\n", std::uintptr_t(memory::get_offset<PlayerList*>(memory::scan(player_list_sig), 0x3)) - base);
+	std::cout << std::format("- context::hud_info {:#x}\n\n", std::uintptr_t(memory::get_offset<HudInfo*>(memory::scan(hud_info_sig), 0x3)) - base);
 
 	try {
 		menu::create();
@@ -67,10 +72,8 @@ BOOL APIENTRY DllMain(HINSTANCE instance, DWORD reason, LPVOID) {
 	if (reason == DLL_PROCESS_ATTACH) {
 		DisableThreadLibraryCalls(instance);
 
-		HANDLE thread = CreateThread(nullptr, 0, run_crashed, instance, 0, nullptr);
-
-		if (thread) {
-			CloseHandle(thread);
+		if (const HANDLE h = CreateThread(nullptr, 0, run_crashed, instance, 0, nullptr); h) {
+			CloseHandle(h);
 		}
 	}
 
