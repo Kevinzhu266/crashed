@@ -4,7 +4,6 @@ An internal War Thunder modification. Please note: No EAC bypass is provided, us
 ## ☂️ Features
 - Universal DirectX 11 Present Hook
 - ImGui Menu with FreeType font rendering
-- Color-based 3D ESP based on aircraft type
 - Ability to hook game functions with MinHook modification
 - Sigs for up-to-date offset
 
