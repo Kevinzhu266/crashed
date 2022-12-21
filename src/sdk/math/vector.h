@@ -28,7 +28,7 @@ struct Vector {
 			&& std::fpclassify(m_z) == FP_ZERO;
 	}
 
-	float len_to(const Vector& vec) noexcept {
+	float len_to(const Vector& vec) const noexcept {
 		return std::sqrt((vec.m_x - m_x) * (vec.m_x - m_x)
 			+ (vec.m_y - m_y) * (vec.m_y - m_y)
 			+ (vec.m_z - m_z) * (vec.m_z - m_z));

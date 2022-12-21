@@ -3,8 +3,39 @@
 #include "math/rotation_matrix.h"
 #include "math/view_matrix.h"
 
-struct UnitWeapons {
+struct UnitWeaponInfo {
+	auto name() const noexcept {
+		return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x8);
+	}
 
+	auto& weapon_info_size() const noexcept {
+		return *reinterpret_cast<int*>(std::uintptr_t(this) + 0xB0);
+	}
+};
+
+struct UnitWeapon {
+	auto weapon_info() const noexcept {
+		return *reinterpret_cast<UnitWeaponInfo**>(std::uintptr_t(this) + 0x2A8);
+	}
+
+	auto& current_ammo_slot() const noexcept {
+		return *reinterpret_cast<char*>(std::uintptr_t(this) + 0x524);
+	}
+
+	auto& next_ammo_slot() const noexcept {
+		return *reinterpret_cast<char*>(std::uintptr_t(this) + 0x525);
+	}
+};
+
+struct UnitWeaponList {
+	UnitWeapon** m_weapons;
+	int m_count;
+};
+
+struct UnitWeapons {
+	auto weapon_list() const noexcept {
+		return *reinterpret_cast<UnitWeaponList**>(std::uintptr_t(this) + 0x390);
+	}
 };
 
 struct UnitInfo {
@@ -46,6 +77,7 @@ struct Unit {
 
 	enum class State : std::uint32_t {
 		alive = 0,
+		not_sure = 1,
 		dead = 2
 	};
 
@@ -68,14 +100,14 @@ struct Unit {
 	}
 
 	auto& army_number() const noexcept {
-		return *reinterpret_cast<int*>(std::uintptr_t(this) + 0x10D8);
+		return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x10D8);
 	}
 
-	auto info() const noexcept {
+	auto unit_info() const noexcept {
 		return *reinterpret_cast<UnitInfo**>(std::uintptr_t(this) + 0x10E8);
 	}
 
-	auto weapons() const noexcept {
+	auto unit_weapons() const noexcept {
 		return *reinterpret_cast<UnitWeapons**>(std::uintptr_t(this) + 0x1198);
 	}
 };

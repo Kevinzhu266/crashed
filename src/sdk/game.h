@@ -35,6 +35,6 @@ struct GameInfo {
 	}
 
 	auto& view_matrix() const noexcept {
-		return *reinterpret_cast<ViewMatrix*>(*reinterpret_cast<std::uintptr_t*>(std::uintptr_t(this) + 0x7B0) + 0x268);
+		return *reinterpret_cast<ViewMatrix*>(*reinterpret_cast<std::uintptr_t*>(std::uintptr_t(this) + 0x750) + 0x258);
 	}
 };

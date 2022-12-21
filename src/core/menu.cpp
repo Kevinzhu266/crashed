@@ -8,20 +8,11 @@
 LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
 
 void menu::render() noexcept {
-	if (ImGui::Begin("crashed", &open, ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse)) {
-		if (context::game_info) {
-			ImGui::Text("Map \"%s\"", context::game_info->map());
-			ImGui::Text("Time \"%s\"", context::game_info->time());
-			ImGui::Text("Mission \"%s\"", context::game_info->mission());
-			ImGui::Text("Weather \"%s\"", context::game_info->weather());
-
-			if (context::player_list) {
-				ImGui::Text("Players  \"%i\"", context::player_list->m_count);
-				if (const Player* local = context::player_list->local_player(); local) {
-					ImGui::Text("Clantag  \"%s\"", local->clan_tag());
-				}
-			}
-		}
+	ImGui::SetNextWindowBgAlpha(0.35f);
+	if (ImGui::Begin(
+		"crashed",
+		nullptr,
+		ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar)) {
 
 		ImGui::End();
 	}

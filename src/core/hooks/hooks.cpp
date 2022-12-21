@@ -13,6 +13,8 @@
 #include <imgui/imgui_impl_dx11.h>
 #include <imgui/imgui_impl_win32.h>
 
+#include "../context.h"
+
 #define NT_SUCCESS(Status) (((NTSTATUS)(Status)) >= 0)
 
 BOOL KeVirtualProtect(LPVOID lpAddress, SIZE_T dwSize, DWORD flNewProtect, PDWORD lpflOldProtect) {

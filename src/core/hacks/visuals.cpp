@@ -1,5 +1,7 @@
 #include "hacks.h"
 
+#include <format>
+
 #include "../../sdk/math/vector.h"
 #include "../../sdk/math/view_matrix.h"
 #include "../../sdk/math/point.h"
@@ -9,8 +11,6 @@
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_dx11.h>
 #include <imgui/imgui_impl_win32.h>
-
-#include <iostream>
 
 static bool world_to_screen(const Vector& world, Point& screen) noexcept {
     const ViewMatrix& vm = context::game_info->view_matrix();
@@ -35,7 +35,54 @@ static bool world_to_screen(const Vector& world, Point& screen) noexcept {
 	return true;
 }
 
+static Unit* closest_enemy_unit(const Unit* local_unit) noexcept {
+    Unit* best_unit{nullptr};
+    float best_distance{10'000.f};
+    const Vector& local_pos = local_unit->position();
+
+    for (int i = 0; i < context::player_list->m_count; ++i) {
+        const Player* player = context::player_list->m_players[i];
+
+        if (!player) {
+            continue;
+        }
+
+        if (player->team() == local_unit->player()->team()) {
+            continue;
+        }
+
+        const Unit* unit = player->owned_unit();
+
+        if (!unit) {
+            continue;
+        }
+
+        if (unit->state() != Unit::State::alive) {
+            continue;
+        }
+
+        const Vector& position = unit->position();
+        const float distance = local_pos.len_to(position);
+
+        if (distance < best_distance) {
+            best_distance = distance;
+            best_unit = const_cast<Unit*>(unit);
+        }
+    }
+
+    return best_unit;
+}
+
 void hacks::visuals() noexcept {
+    if (!context::hud_info) {
+        return;
+    }
+
+    context::hud_info->bomb_indicator() = true;
+    context::hud_info->air_to_air_indicator() = true;
+
+    return;
+
     if (!context::player_list) {
         return;
     }
@@ -45,6 +92,34 @@ void hacks::visuals() noexcept {
     if (!local_player) {
         return;
     }
+
+    const Unit* local_unit = local_player->owned_unit();
+
+    if (!local_unit) {
+        return;
+    }
+
+    //const UnitWeapons* local_weapons = local_unit->unit_weapons();
+
+    //if (!local_weapons) {
+    //    return;
+    //}
+
+    //const UnitWeaponList* local_weapon_list = local_weapons->weapon_list();
+
+    //if (!local_weapon_list) {
+    //    return;
+    //}
+
+    //for (int i = 0; i < local_weapon_list->m_count; ++i) {
+    //    const UnitWeapon* weapon = local_weapon_list->m_weapons[i];
+
+    //    if (!weapon) {
+    //        continue;
+    //    }
+
+
+    //}
 
     for (int i = 0; i < context::player_list->m_count; ++i) {
         const Player* player = context::player_list->m_players[i];
@@ -69,12 +144,29 @@ void hacks::visuals() noexcept {
 
         const Vector& position = unit->position();
 
-        // this is a bit of a hack until i find dormancy
-        if (position.is_zero()) {
-            continue;
+        //const UnitInfo* unit_info = unit->unit_info();
+
+        //if (!unit_info) {
+        //    continue;
+        //}
+
+        Point screen;
+        if (world_to_screen(position, screen)) {    
+            ImGui::GetBackgroundDrawList()->AddCircleFilled({screen.m_x, screen.m_y}, 2.f, ImColor(255, 0, 0));
         }
 
         // add the rest of ESP
+    }
+
+    if (const Unit* closest_enemy = closest_enemy_unit(local_unit); closest_enemy) {
+        ImGui::SetNextWindowBgAlpha(0.35f);
+        if (ImGui::Begin(
+            "closest enemy",
+            nullptr,
+            ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoTitleBar)) {
+            ImGui::Text("%s %.2f km", closest_enemy->unit_info()->m_full_name, local_unit->position().len_to(closest_enemy->position()) / 1000.f);
+            ImGui::End();
+        }
     }
 }
 

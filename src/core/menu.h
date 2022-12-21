@@ -9,7 +9,7 @@
 
 namespace menu
 {
-	inline bool open = false;
+	inline bool open = true;
 	void render() noexcept;
 
 	void create_menu(IDXGISwapChain* swap_chain) noexcept;
