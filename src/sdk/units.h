@@ -52,27 +52,23 @@ struct UnitInfo {
 struct Player;
 struct Unit {
 	auto& bounding_box_min() const noexcept {
-		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x200);
+		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x208);
 	}
 
 	auto& bounding_box_max() const noexcept {
-		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x20C);
+		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x214);
 	}
 
-	auto vehicle_name() const noexcept {
-		return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x458);
-	}
+	//auto vehicle_name() const noexcept {
+	//	return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x460);
+	//}
 
 	auto& rotation_matrix() const noexcept {
-		return *reinterpret_cast<RotationMatrix*>(std::uintptr_t(this) + 0x9BC);
+		return *reinterpret_cast<RotationMatrix*>(std::uintptr_t(this) + 0x9E4);
 	}
 
 	auto& position() const noexcept {
-		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0x9E0);
-	}
-
-	auto& invulnerable() const noexcept {
-		return *reinterpret_cast<bool*>(std::uintptr_t(this) + 0xFA0);
+		return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0xA08);
 	}
 
 	enum class State : std::uint32_t {
@@ -82,7 +78,7 @@ struct Unit {
 	};
 
 	auto& state() const noexcept {
-		return *reinterpret_cast<State*>(std::uintptr_t(this) + 0x1080);
+		return *reinterpret_cast<State*>(std::uintptr_t(this) + 0x10A8);
 	}
 
 	enum class Types {
@@ -92,23 +88,23 @@ struct Unit {
 	};
 
 	auto& type() const noexcept {
-		return *reinterpret_cast<Types*>(std::uintptr_t(this) + 0x1088);
+		return *reinterpret_cast<Types*>(std::uintptr_t(this) + 0x10B0);
 	}
 
 	auto player() const noexcept {
-		return *reinterpret_cast<Player**>(std::uintptr_t(this) + 0x1090);
+		return *reinterpret_cast<Player**>(std::uintptr_t(this) + 0x10B8);
 	}
 
 	auto& army_number() const noexcept {
-		return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x10D8);
+		return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x1100);
 	}
 
-	auto unit_info() const noexcept {
-		return *reinterpret_cast<UnitInfo**>(std::uintptr_t(this) + 0x10E8);
+	auto model_info() const noexcept {
+		return *reinterpret_cast<UnitInfo**>(std::uintptr_t(this) + 0x1110);
 	}
 
 	auto unit_weapons() const noexcept {
-		return *reinterpret_cast<UnitWeapons**>(std::uintptr_t(this) + 0x1198);
+		return *reinterpret_cast<UnitWeapons**>(std::uintptr_t(this) + 0x11C0);
 	}
 };
 

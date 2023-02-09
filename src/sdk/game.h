@@ -22,15 +22,15 @@ struct GameInfo {
 		return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x200);
 	}
 
-	auto bot_list_one() const noexcept {
+	auto unit_list_one() const noexcept {
 		return *reinterpret_cast<UnitList**>(std::uintptr_t(this) + 0x350);
 	}
 
-	auto bot_list_two() const noexcept {
+	auto unit_list_two() const noexcept {
 		return *reinterpret_cast<UnitList**>(std::uintptr_t(this) + 0x370);
 	}
 
-	auto bot_list_three() const noexcept {
+	auto unit_list_three() const noexcept {
 		return *reinterpret_cast<UnitList**>(std::uintptr_t(this) + 0x390);
 	}
 
