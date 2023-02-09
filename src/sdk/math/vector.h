@@ -8,18 +8,12 @@ struct Vector {
 	Vector(float x, float y, float z) noexcept
 		: m_x(x), m_y(y), m_z(z) {}
 
-	Vector& operator+(const Vector& other) noexcept {
-		m_x += other.m_x;
-		m_y += other.m_y;
-		m_z += other.m_z;
-		return *this;
+	Vector operator+(const Vector& other) noexcept {
+		return Vector{m_x + other.m_x, m_y + other.m_y, m_z + other.m_z};
 	}
 
-	Vector& operator-(const Vector& other) noexcept {
-		m_x -= other.m_x;
-		m_y -= other.m_y;
-		m_z -= other.m_z;
-		return *this;
+	Vector operator-(const Vector& other) noexcept {
+		return Vector{m_x - other.m_x, m_y - other.m_y, m_z - other.m_z};
 	}
 
 	bool is_zero() const noexcept {
