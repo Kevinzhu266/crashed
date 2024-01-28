@@ -1,6 +1,7 @@
 #pragma once
 #include <cstdint>
 
+// All of these are currently wrong... I think.
 struct HudInfo {
     auto& allow_third_person() const noexcept {
         return *reinterpret_cast<bool*>(std::uintptr_t(this) + 0x44);
