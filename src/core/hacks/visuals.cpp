@@ -2,18 +2,19 @@
 
 #include <format>
 
+#include "../../sdk/hud.h"
+#include "../../sdk/math/point.h"
 #include "../../sdk/math/vector.h"
 #include "../../sdk/math/view_matrix.h"
-#include "../../sdk/math/point.h"
 #include "../../sdk/players.h"
-#include "../../sdk/hud.h"
 
 #include <imgui/imgui.h>
 #include <imgui/imgui_impl_dx11.h>
 #include <imgui/imgui_impl_win32.h>
 
 static bool world_to_screen(const Vector& world, Point& screen) noexcept {
-    const ViewMatrix& vm = context::game_info->view_matrix();
+    //const ViewMatrix& vm = context::game_info->view_matrix();
+    const auto vm = context::view_matrix->m_data;
     float w = vm[0][3] * world.m_x + vm[1][3] * world.m_y + vm[2][3] * world.m_z + vm[3][3];
 
     if (w < 0.001f) {
@@ -32,16 +33,20 @@ static bool world_to_screen(const Vector& world, Point& screen) noexcept {
     screen.m_x = (size.x * 0.5f * nx) + (nx + size.x * 0.5f);
     screen.m_y = -(size.y * 0.5f * ny) + (ny + size.y * 0.5f);
 
-	return true;
+    return true;
 }
 
 void hacks::visuals() noexcept {
-    if (!context::hud_info || !context::game_info || !context::player_list) {
+    //if (!context::hud_info || !context::game_info || !context::player_list) {
+    //    return;
+    //}
+
+    if (!context::player_list || !context::view_matrix) {
         return;
     }
 
-    context::hud_info->bomb_indicator() = true;
-    context::hud_info->air_to_air_indicator() = true;
+    //context::hud_info->bomb_indicator() = true;
+    //context::hud_info->air_to_air_indicator() = true;
 
     const Player* local_player = context::player_list->local_player();
 
