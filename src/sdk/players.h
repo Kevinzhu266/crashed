@@ -17,9 +17,9 @@ struct Player {
     //    return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x168);
     //}
 
-    auto title() const noexcept {
-        return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x190);
-    }
+    //auto title() const noexcept {
+    //    return *reinterpret_cast<const char**>(std::uintptr_t(this) + 0x190);
+    //}
 
     auto& team() const noexcept {
         return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x208);
@@ -54,6 +54,8 @@ struct PlayerList {
     }
 
     Player** m_players;
+private:
     char m_pad_0008[8];
+public:
     int m_count;
 };
