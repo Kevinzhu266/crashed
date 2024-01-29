@@ -5,14 +5,29 @@
 
 #include "../sdk/players.h"
 
-LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
+LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
 
 void menu::render() noexcept {
     ImGui::SetNextWindowBgAlpha(0.35f);
     if (ImGui::Begin(
         "crashed",
         nullptr,
-        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoTitleBar)) {
+        ImGuiWindowFlags_NoSavedSettings | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize)) {
+        ImGui::Text("misc");
+        ImGui::Separator();
+        ImGui::Checkbox("watermark", &hacks::config::watermark);
+
+        ImGui::Spacing();
+
+        ImGui::Text("esp");
+        ImGui::Separator();
+        ImGui::Checkbox("enabled", &hacks::config::esp_enabled);
+        ImGui::Checkbox("enemy only", &hacks::config::esp_enemy_only);
+        ImGui::ColorPicker4("main color", hacks::config::esp_main_colour.data(), ImGuiColorEditFlags_NoPicker);
+        ImGui::ColorPicker4("front color", hacks::config::esp_front_colour.data());
+
+        ImGui::Spacing();
+
         ImGui::Text("TODO: Add menu items here...");
         ImGui::End();
     }
@@ -37,12 +52,15 @@ void menu::create_menu(IDXGISwapChain* swap_chain) noexcept {
 
         original_window_process = reinterpret_cast<WNDPROC>(SetWindowLongPtr(window,
             GWLP_WNDPROC,
-            reinterpret_cast<LONG_PTR>(WindowProcess)));
+            reinterpret_cast<LONG_PTR>(WindowProcedure)));
 
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
 
         io.ConfigFlags = ImGuiConfigFlags_NoMouseCursorChange;
+
+        //io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\tahoma.ttf", 16.f);
+        io.Fonts->AddFontFromFileTTF("C:\\Windows\\Fonts\\segoeui.ttf", 15.f);
 
         ImGuiStyle* style = &ImGui::GetStyle();
 
@@ -60,6 +78,12 @@ void menu::create_menu(IDXGISwapChain* swap_chain) noexcept {
 
         ImGui_ImplWin32_Init(window);
         ImGui_ImplDX11_Init(device, context);
+
+        ImGui::SetColorEditOptions(ImGuiColorEditFlags_NoInputs
+            | ImGuiColorEditFlags_NoLabel
+            | ImGuiColorEditFlags_NoSidePreview
+            | ImGuiColorEditFlags_Uint8
+            | ImGuiColorEditFlags_AlphaBar);
     }
 }
 
@@ -205,7 +229,7 @@ void menu::create() {
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
-LRESULT CALLBACK WindowProcess(HWND window, UINT message, WPARAM wideParam, LPARAM longParam) {
+LRESULT CALLBACK WindowProcedure(HWND window, UINT message, WPARAM wideParam, LPARAM longParam) {
     if (GetAsyncKeyState(VK_INSERT) & 1)
         menu::open = !menu::open;
 

@@ -36,10 +36,18 @@ static bool world_to_screen(const Vector& world, Point& screen) noexcept {
     return true;
 }
 
+// TODO: Not use this bs.
+#define ARR_TO_IMCOLOR(arr) \
+ImColor(arr[0], arr[1], arr[2], arr[3])
+
 void hacks::visuals() noexcept {
     //if (!context::hud_info || !context::game_info || !context::player_list) {
     //    return;
     //}
+
+    if (!hacks::config::esp_enabled) {
+        return;
+    }
 
     if (!context::player_list || !context::view_matrix) {
         return;
@@ -89,6 +97,11 @@ void hacks::visuals() noexcept {
             continue;
         }
 
+        // Ingnore teammates.
+        if (hacks::config::esp_enemy_only && player->team() == local_player->team()) {
+            continue;
+        }
+
         //if (player->team() == local_player->team()) {
         //    continue;
         //}
@@ -103,17 +116,65 @@ void hacks::visuals() noexcept {
             continue;
         }
 
-        const Vector& position = unit->position();
+        Vector& position = unit->position();
+
+        if (position.is_zero()) {
+            continue;
+        }
+
+        ImDrawList* draw = ImGui::GetBackgroundDrawList();
+
+        // Render 3D boxes. (pasted)
+        {
+            const RotationMatrix& rotation = unit->rotation_matrix();
+            Vector& bb_min = unit->bounding_box_min();
+            Vector& bb_max = unit->bounding_box_max();
+
+            Vector ax[6];
+            ax[0] = Vector{rotation[0][0], rotation[0][1], rotation[0][2]}.scale(bb_min.m_x);
+            ax[1] = Vector{rotation[1][0], rotation[1][1], rotation[1][2]}.scale(bb_min.m_y);
+            ax[2] = Vector{rotation[2][0], rotation[2][1], rotation[2][2]}.scale(bb_min.m_z);
+            ax[3] = Vector{rotation[0][0], rotation[0][1], rotation[0][2]}.scale(bb_max.m_x);
+            ax[4] = Vector{rotation[1][0], rotation[1][1], rotation[1][2]}.scale(bb_max.m_y);
+            ax[5] = Vector{rotation[2][0], rotation[2][1], rotation[2][2]}.scale(bb_max.m_z);
+
+            Vector temp[6];
+            temp[0] = position + ax[2];
+            temp[1] = position + ax[5];
+            temp[2] = temp[0] + ax[3];
+            temp[3] = temp[1] + ax[3];
+            temp[4] = temp[0] + ax[0];
+            temp[5] = temp[1] + ax[0];
+
+            Vector v[8];
+            v[0] = temp[2] + ax[1];
+            v[1] = temp[2] + ax[4];
+            v[2] = temp[3] + ax[4];
+            v[3] = temp[3] + ax[1];
+            v[4] = temp[4] + ax[1];
+            v[5] = temp[4] + ax[4];
+            v[6] = temp[5] + ax[4];
+            v[7] = temp[5] + ax[1];
+
+            Point p1;
+            Point p2;
+            for (int j = 0; j < 4; ++j) {
+                if (world_to_screen(v[j], p1) == true && world_to_screen(v[(j + 1) & 3], p2) == true)
+                    draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_front_colour), 1.f);
+
+                if (world_to_screen(v[4 + j], p1) && world_to_screen(v[4 + ((j + 1) & 3)], p2))
+                    draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_main_colour), 1.f);
+
+                if (world_to_screen(v[j], p1) && world_to_screen(v[4 + j], p2))
+                    draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_main_colour), 1.f);
+            }
+        }
 
         //const UnitInfo* unit_info = unit->unit_info();
 
         //if (!unit_info) {
         //    continue;
         //}
-
-        if (Point screen; world_to_screen(position, screen)) {
-            ImGui::GetBackgroundDrawList()->AddCircleFilled({screen.m_x, screen.m_y}, 2.f, ImColor(255, 0, 0));
-        }
 
         // add the rest of ESP
     }

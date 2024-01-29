@@ -56,6 +56,12 @@ HRESULT __stdcall hooks::present(IDXGISwapChain* swap_chain, UINT sync_interval,
     ImGui_ImplWin32_NewFrame();
     ImGui::NewFrame();
 
+    ImDrawList* draw = ImGui::GetBackgroundDrawList();
+
+    if (hacks::config::watermark) {
+        draw->AddText({5, 5}, ImColor(1.f, 1.f, 1.f, 1.f), "crashed");
+    }
+
     if (menu::open) {
         menu::render();
     }
