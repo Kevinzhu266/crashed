@@ -3,7 +3,7 @@
 #include <iostream>
 #include <thread>
 
-#include "hooks/hooks.h"
+#include "core/hooks/hooks.h"
 #include <Windows.h>
 
 DWORD WINAPI run_crashed(LPVOID instance) {
@@ -63,6 +63,8 @@ DWORD WINAPI run_crashed(LPVOID instance) {
         FreeConsole();
         FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
     }
+
+    std::cout << "Do not close this window!\nINSERT to open the menu and END to unload the cheat (only loadlib).\n";
 
     // wait until the unload key is pressed
     while (!GetAsyncKeyState(VK_END) & 1) {

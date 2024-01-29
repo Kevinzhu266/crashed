@@ -81,8 +81,8 @@
     <LinkIncremental>true</LinkIncremental>
     <OutDir>$(SolutionDir)build\</OutDir>
     <IntDir>$(SolutionDir)build\intermediates\</IntDir>
-    <LibraryPath>D:\Coding\crashed\external\freetype\lib;$(LibraryPath)</LibraryPath>
-    <IncludePath>D:\Coding\crashed\external;$(IncludePath)</IncludePath>
+    <LibraryPath>$(SolutionDir)external\freetype\lib\;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(SolutionDir)external\;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>false</LinkIncremental>
@@ -156,7 +156,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="src\core\dllmain.cpp" />
+    <ClCompile Include="src\dllmain.cpp" />
     <ClCompile Include="src\core\hacks\visuals.cpp" />
     <ClCompile Include="src\core\hooks\hooks.cpp" />
     <ClCompile Include="src\core\memory.cpp">
