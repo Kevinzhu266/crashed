@@ -58,4 +58,8 @@ private:
     char m_pad_0008[8];
 public:
     int m_count;
+private:
+    char m_pad_0004[4];
+public:
+    Player* m_local_player;
 };

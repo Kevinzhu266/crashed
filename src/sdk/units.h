@@ -72,16 +72,6 @@ struct Unit {
         return *reinterpret_cast<Vector*>(std::uintptr_t(this) + 0xB70);
     }
 
-    //enum class State : std::uint32_t {
-    //	alive = 0,
-    //	not_sure = 1,
-    //	dead = 2
-    //};
-
-    //auto& state() const noexcept {
-    //	return *reinterpret_cast<State*>(std::uintptr_t(this) + 0x10A8);
-    //}
-
     //enum class Types {
     //	aircraft = 0,
     //	tank = 3,
@@ -96,12 +86,26 @@ struct Unit {
     //	return *reinterpret_cast<Player**>(std::uintptr_t(this) + 0x10B8);
     //}
 
-    //auto& army_number() const noexcept {
-    //	return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x1100);
-    //}
-
     auto model_info() const noexcept {
         return *reinterpret_cast<UnitInfo**>(std::uintptr_t(this) + 0x1110);
+    }
+
+    auto& invulnerable() const noexcept {
+        return *reinterpret_cast<bool*>(std::uintptr_t(this) + 0x1190);
+    }
+
+    enum class State : std::uint32_t {
+        alive = 0,
+        not_sure = 1,
+        dead = 2
+    };
+
+    auto& state() const noexcept {
+        return *reinterpret_cast<State*>(std::uintptr_t(this) + 0x1270);
+    }
+
+    auto& army_number() const noexcept {
+        return *reinterpret_cast<std::uint8_t*>(std::uintptr_t(this) + 0x12D8);
     }
 
     //auto unit_weapons() const noexcept {
@@ -111,5 +115,8 @@ struct Unit {
 
 struct UnitList {
     Unit** m_units;
+private:
+    char m_pad_0008[8];
+public:
     int m_count;
 };
