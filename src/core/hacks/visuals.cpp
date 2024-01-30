@@ -41,20 +41,9 @@ static bool world_to_screen(const Vector& world, Point& screen) noexcept {
 ImColor(arr[0], arr[1], arr[2], arr[3])
 
 void hacks::visuals() noexcept {
-    //if (!context::hud_info || !context::game_info || !context::player_list) {
-    //    return;
-    //}
-
-    if (!hacks::config::esp_enabled) {
+    if (!context::game_info || !context::player_list || !context::view_matrix) {
         return;
     }
-
-    if (!context::player_list || !context::view_matrix) {
-        return;
-    }
-
-    //context::hud_info->bomb_indicator() = true;
-    //context::hud_info->air_to_air_indicator() = true;
 
     const Player* local_player = context::player_list->local_player();
 
@@ -68,56 +57,34 @@ void hacks::visuals() noexcept {
         return;
     }
 
-    //const UnitWeapons* local_weapons = local_unit->unit_weapons();
+    const UnitList* unit_list = context::game_info->unit_list();
 
-    //if (!local_weapons) {
-    //    return;
-    //}
+    for (int i = 0; i < unit_list->m_count; ++i) {
+        const Unit* unit = unit_list->m_units[i];
 
-    //const UnitWeaponList* local_weapon_list = local_weapons->weapon_list();
-
-    //if (!local_weapon_list) {
-    //    return;
-    //}
-
-    //for (int i = 0; i < local_weapon_list->m_count; ++i) {
-    //    const UnitWeapon* weapon = local_weapon_list->m_weapons[i];
-
-    //    if (!weapon) {
-    //        continue;
-    //    }
-
-
-    //}
-
-    for (int i = 0; i < context::player_list->m_count; ++i) {
-        const Player* player = context::player_list->m_players[i];
-
-        if (!player) {
-            continue;
-        }
-
-        // Ingnore teammates.
-        if (hacks::config::esp_enemy_only && player->team() == local_player->team()) {
-            continue;
-        }
-
-        //if (player->team() == local_player->team()) {
-        //    continue;
-        //}
-
-        //if (player->gui_state() != Player::GuiState::alive) {
-        //    continue;
-        //}
-
-        const Unit* unit = player->owned_unit();
-
+        // Make sure unit is alive and not null.
         if (!unit) {
             continue;
         }
 
-        Vector& position = unit->position();
+        if (hacks::config::esp_enemy_only) {
+            if (unit->army_number() == local_unit->army_number()) {
+                continue;
+            }
+        }
+        else {
+            if (unit == local_unit) {
+                continue;
+            }
+        }
 
+        // Filter out enemies based on runtime config.
+        if (hacks::config::esp_enemy_only && unit->army_number() == local_unit->army_number()) {
+            continue;
+        }
+
+        // Sometimes the game will render inactive players at pos (0, 0, 0).
+        Vector& position = unit->position();
         if (position.is_zero()) {
             continue;
         }
@@ -159,24 +126,19 @@ void hacks::visuals() noexcept {
             Point p1;
             Point p2;
             for (int j = 0; j < 4; ++j) {
-                if (world_to_screen(v[j], p1) == true && world_to_screen(v[(j + 1) & 3], p2) == true)
+                if (world_to_screen(v[j], p1) == true && world_to_screen(v[(j + 1) & 3], p2) == true) {
                     draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_front_colour), 1.f);
+                }
 
-                if (world_to_screen(v[4 + j], p1) && world_to_screen(v[4 + ((j + 1) & 3)], p2))
+                if (world_to_screen(v[4 + j], p1) && world_to_screen(v[4 + ((j + 1) & 3)], p2)) {
                     draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_main_colour), 1.f);
+                }
 
-                if (world_to_screen(v[j], p1) && world_to_screen(v[4 + j], p2))
+                if (world_to_screen(v[j], p1) && world_to_screen(v[4 + j], p2)) {
                     draw->AddLine({p1.m_x, p1.m_y}, {p2.m_x, p2.m_y}, ARR_TO_IMCOLOR(hacks::config::esp_main_colour), 1.f);
+                }
             }
         }
-
-        //const UnitInfo* unit_info = unit->unit_info();
-
-        //if (!unit_info) {
-        //    continue;
-        //}
-
-        // add the rest of ESP
     }
 }
 

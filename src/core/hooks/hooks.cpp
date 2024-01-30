@@ -66,7 +66,9 @@ HRESULT __stdcall hooks::present(IDXGISwapChain* swap_chain, UINT sync_interval,
         menu::render();
     }
 
-    hacks::visuals();
+    if (hacks::config::esp_enabled) {
+        hacks::visuals();
+    }
 
     ImGui::EndFrame();
     ImGui::Render();
