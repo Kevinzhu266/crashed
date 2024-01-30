@@ -63,7 +63,7 @@ void hacks::visuals() noexcept {
         const Unit* unit = unit_list->m_units[i];
 
         // Make sure unit is alive and not null.
-        if (!unit) {
+        if (!unit || unit->state() == Unit::State::dead) {
             continue;
         }
 
@@ -76,11 +76,6 @@ void hacks::visuals() noexcept {
             if (unit == local_unit) {
                 continue;
             }
-        }
-
-        // Filter out enemies based on runtime config.
-        if (hacks::config::esp_enemy_only && unit->army_number() == local_unit->army_number()) {
-            continue;
         }
 
         // Sometimes the game will render inactive players at pos (0, 0, 0).
