@@ -45,34 +45,34 @@ DWORD WINAPI run_crashed(LPVOID instance) {
     //std::cout << std::format("- context::mouse_info {:#x}\n\n", std::uintptr_t(memory::get_offset<MouseInfo*>(memory::scan(mouse_info_sig), 0x3)) - base);
     std::cout << std::format("- context::view_matrix {:#x}\n\n", std::uintptr_t(memory::get_offset<ViewMatrix*>(memory::scan(view_matrix_sig), 0x3)) - base);
 
+    auto destroy_crashed = [](LPVOID param) {
+        hooks::destroy();
+        menu::destroy_menu();
+        FreeConsole();
+        FreeLibraryAndExitThread(static_cast<HMODULE>(param), 0);
+        };
+
     try {
         menu::create();
         hooks::create();
     }
     catch (const std::exception& error) {
         MessageBox(nullptr, error.what(), "crashed", MB_ICONERROR);
-        hooks::destroy();
-        menu::destroy_menu();
-        FreeConsole();
-        FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
+        destroy_crashed(instance);
     }
     catch (...) {
         MessageBox(nullptr, "an unknown  exception occurred", "crashed", MB_ICONERROR);
-        hooks::destroy();
-        menu::destroy_menu();
-        FreeConsole();
-        FreeLibraryAndExitThread(static_cast<HMODULE>(instance), 0);
+        destroy_crashed(instance);
     }
 
     std::cout << "Do not close this window!\nINSERT to open the menu and END to unload the cheat (only loadlib).\n";
 
     // wait until the unload key is pressed
-    while (!GetAsyncKeyState(VK_END) & 1) {
+    while (!GetAsyncKeyState(VK_END)) {
         Sleep(200);
     }
 
-    hooks::destroy();
-    menu::destroy_menu();
+    destroy_crashed(instance);
 
     std::cout << "crashed has been unloaded. You can safely close this window.\n";
 

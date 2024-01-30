@@ -97,7 +97,7 @@ void menu::destroy_menu() noexcept {
 }
 
 void menu::create() {
-    WNDCLASSEX windowClass;
+    WNDCLASSEXW windowClass;
     windowClass.cbSize = sizeof(WNDCLASSEX);
     windowClass.style = CS_HREDRAW | CS_VREDRAW;
     windowClass.lpfnWndProc = DefWindowProc;
@@ -108,15 +108,15 @@ void menu::create() {
     windowClass.hCursor = NULL;
     windowClass.hbrBackground = NULL;
     windowClass.lpszMenuName = NULL;
-    windowClass.lpszClassName = "Crashed";
+    windowClass.lpszClassName = L"Crashed";
     windowClass.hIconSm = NULL;
 
-    if (!RegisterClassEx(&windowClass)) {
+    if (!RegisterClassExW(&windowClass)) {
         throw std::runtime_error("Failed to register window class.");
     }
 
-    const auto tempWindow = CreateWindow(windowClass.lpszClassName,
-        "Crashed DirectX Window",
+    const auto tempWindow = CreateWindowW(windowClass.lpszClassName,
+        L"Crashed DirectX Window",
         WS_OVERLAPPEDWINDOW,
         0, 0,
         100, 100,
@@ -126,15 +126,15 @@ void menu::create() {
         NULL);
 
     if (!tempWindow) {
-        UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+        UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
         throw std::runtime_error("Failed to create temp window.");
     }
 
-    const auto d3dlib = GetModuleHandleA("d3d11.dll");
+    const auto d3dlib = GetModuleHandleW(L"d3d11.dll");
 
     if (!d3dlib) {
         DestroyWindow(tempWindow);
-        UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+        UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
         throw std::runtime_error("Unable to get d3d11.dll handle");
     }
 
@@ -156,7 +156,7 @@ void menu::create() {
 
     if (!function) {
         DestroyWindow(tempWindow);
-        UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+        UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
         throw std::runtime_error("Unable to get D3D11CreateDeviceAndSwapChain");
     }
 
@@ -203,10 +203,9 @@ void menu::create() {
         &swapChainDesc,
         &swapChain, &device,
         &featureLevel,
-        &context) < 0)
-    {
+        &context) < 0) {
         DestroyWindow(tempWindow);
-        UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+        UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
         throw std::runtime_error("Fuck knows what this problem is");
     }
 
@@ -225,7 +224,7 @@ void menu::create() {
     context = NULL;
 
     DestroyWindow(tempWindow);
-    UnregisterClass(windowClass.lpszClassName, windowClass.hInstance);
+    UnregisterClassW(windowClass.lpszClassName, windowClass.hInstance);
 }
 
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND window, UINT message, WPARAM wideParam, LPARAM longParam);
